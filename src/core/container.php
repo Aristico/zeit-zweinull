@@ -13,9 +13,10 @@ use PDO;
 use App\entry\entryRevisionRepository;
 use App\entry\entrySnapshotRepository;
 use App\entry\entryRepository;
-use App\user\userDataRepository;
+use App\user\userScheduleRepository;
 use App\time\timeOperations;
 use App\user\userBalance;
+use App\user\userScheduleVersions;
 
 
 class container
@@ -37,7 +38,9 @@ class container
             return $pdo;
             },
             "entryRepository" => function () {
-                $entryRepository = new entryRepository($this->make("pdo"), $this->make("timeOperations"));
+                $entryRepository = new entryRepository($this->make("pdo"),
+                                                       $this->make("timeOperations"),
+                                                       $this->make("userScheduleVersions"));
                 return $entryRepository;
             },
             "entryRevisionRepository" => function () {
@@ -52,15 +55,17 @@ class container
                 $timeOperations = new timeOperations();
                 return $timeOperations;
             },
-            "userDataRepository" => function () {
-                $userData = new userDataRepository($this->make("pdo"));
+            "userScheduleRepository" => function () {
+                $userData = new userScheduleRepository($this->make("pdo"));
+                return $userData;
+            },
+            "userScheduleVersions" => function () {
+                $userData = new userScheduleVersions($this->make("pdo"));
                 return $userData;
             },
             "userBalance" => function () {
                 $userBalance = new userBalance($this->make("entryRepository"),
                                             $this->make("entrySnapshotRepository"),
-                                            $this->make("entryRevisionRepository"),
-                                            $this->make("userDataRepository"),
                                             $this->make("timeOperations"));
                 return $userBalance;
             }

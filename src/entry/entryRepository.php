@@ -9,11 +9,13 @@ class entryRepository
 {
     private $pdo;
     private $timeOperations;
+    private $userScheduleVersions;
 
-    public function __construct(PDO $pdo, $timeOperations)
+    public function __construct(PDO $pdo, $timeOperations, $userScheduleVersions)
     {
         $this->pdo = $pdo;
         $this->timeOperations = $timeOperations;
+        $this->userScheduleVersions = $userScheduleVersions;
     }
 
     public function entryExists ($user, $date) {
@@ -31,12 +33,25 @@ class entryRepository
     public function fetchDatabase($user, $dateafter = '', $datebefore = '') {
 
         if ($dateafter == '') { $condition_date_after = '';}
-                else {$condition_date_after = " AND date > :dateafter";}
+                else {$condition_date_after = " AND entrys.date > :dateafter";}
 
-        if ($datebefore != '' ) {$condition_date_before = " AND date < :datebefore";}
+        if ($datebefore != '' ) {$condition_date_before = " AND entrys.date < :datebefore";}
                 else {$condition_date_before = '';}
 
-        $sql = "select * from entrys WHERE user = :user" . $condition_date_after . $condition_date_before;
+        $sql = "select entrys.user,
+                       entrys.date,
+                       us.day,
+                       entrys.begin,
+                       entrys.end,
+                       CASE WHEN revision.break is null THEN us.break ELSE revision.break END AS break,
+                       entrys.version,
+                       us.begin AS schedule_begin, 
+                       us.end AS schedule_end,
+                       us.break AS schedule_break
+                FROM   entrys 
+                LEFT JOIN revision ON revision.user = entrys.user AND revision.date = entrys.date
+                LEFT JOIN user_schedule us ON us.user = entrys.user AND us.version = entrys.version AND weekday(entrys.date)+1 = us.day 
+                WHERE entrys.user = :user" . $condition_date_after . $condition_date_before;
 
         $stmt = $this->pdo->prepare($sql);
         $stmt->bindParam("user", $user);
@@ -57,8 +72,9 @@ class entryRepository
         if ($this->entryExists($user, $dateToday)) {
             return 2;
         } else {
-            $stmt = $this->pdo->prepare("INSERT INTO entrys (user, date, begin, end) VALUES (:user, :date, :currentTime,:currentTime2)");
-            $result = $stmt->execute(["user" => $user, "date"=>$dateToday, "currentTime" => $currentTime, "currentTime2" => $currentTime ]);
+            $stmt = $this->pdo->prepare("INSERT INTO entrys (user, date, begin, end, version) 
+                                                   VALUES (:user, :date, :currentTime,:currentTime2, :version)");
+            $result = $stmt->execute(["user" => $user, "date"=>$dateToday, "currentTime" => $currentTime, "currentTime2" => $currentTime, "version" => $this->userScheduleVersions->getCurrentVersion($user)]);
             if ($result) {
                 return 1;
             } else {
@@ -66,10 +82,6 @@ class entryRepository
             }
         }
     }
-
-    //TODO Funktion schreiben, die die Tabelle mit den Überstunden speichert. Weil, wenn sich die Arbeitzeiten ändern, dann ändern sie sich auch Rückwirkend
-    // Das führt dazu, dass ggf. die Stundenzettel sich rückwirkend verändert. Immer dann ein Problem, wenn der Snapshot sich ändert. Alternative Möglichkeit, snapshots festschreiben
-    // Und zusätzlich die Arbeitszeiten-Änderungen dokumentieren. Vielleicht im Snapshot die Arbeitszeiten pro Tag speichern.
 
     public function setEnd ($user) {
         $dateToday = $this->timeOperations->dateToday;

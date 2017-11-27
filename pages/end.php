@@ -5,7 +5,7 @@
       ?>
 
 <?php
-    $entryRepository = new \App\entry\entryRepository($pdo);
+    $entryRepository = $container->make("entryRepository");
     if (isset($_GET["user"])) {
         $returnCode = $entryRepository->setEnd($_GET['user']);
         if ($returnCode == 2) {

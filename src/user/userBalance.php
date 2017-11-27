@@ -11,25 +11,19 @@ namespace App\user;
 use App\entry\entryRepository;
 use App\entry\entrySnapshotRepository;
 use App\entry\entryRevisionRepository;
-use App\user\userDataRepository;
+use App\user\userScheduleRepository;
 
 class userBalance
 {
     private $entryRepository;
     private $entrySnapshotRepository;
-    private $entryRevisionRepository;
-    private $userDataRepository;
 
     public function __construct($entryRepository,
                                 $entrySnapshotRepository,
-                                $entryRevisionRepository,
-                                $userDataRepository,
                                 $timeOperations)
     {
         $this->entryRepository = $entryRepository;
         $this->entrySnapshotRepository = $entrySnapshotRepository;
-        $this->entryRevisionRepository = $entryRevisionRepository;
-        $this->userDataRepository = $userDataRepository;
         $this->timeOperations = $timeOperations;
     }
 
@@ -38,15 +32,8 @@ class userBalance
         // Ermittelt das Datum des letzten Snapshots
         $lastSnapshot = $this->entrySnapshotRepository->getLastSnapshot($user);
 
-        // Fragt die Arbeitszeiten des Users ab
-        $userSchedule = $this->userDataRepository->getWorkingSchedule($user);
-
         // Fragt alle Datenbankeinträge seit dem letzten Snapshot ab
         $entrys = $this->entryRepository->fetchDatabase($user, $lastSnapshot->date);
-
-        // Fragt alle abweichenden Pausen seit dem letzten Snapshot ab
-        $revisions = $this->entryRevisionRepository->fetchDatabase($user, $lastSnapshot->date);
-
 
         $entryTable = [];
         $balanceTotal = $lastSnapshot->balance;
@@ -54,18 +41,11 @@ class userBalance
         // erzeugt ein Array mit dem Berechnungsergebnis der Arbeitszeit und dem Stundenkonto
         foreach ($entrys as $entry) {
 
-            // Gibt es in den Revisions eine abweichende Pause? Dann wird diese genutzt.
-            if (isset($revisions[$entry->date])) {
-                $break = $revisions[$entry->date]->break;
-            } else { $break = $userSchedule[$this->timeOperations->getDayOfWeek($entry->date)]->break;}
-
             // Errechnet die Tatsächliche Arbeitszeit
-            $balanceWork = $this->timeOperations->getWorkTime($entry->begin, $entry->end, $break);
+            $balanceWork = $this->timeOperations->getWorkTime($entry->begin, $entry->end, $entry->break);
 
             //Errechnet die Standard-Arbeitszeit
-            $balanceSchedule = $this->timeOperations->getWorkTime($userSchedule[$this->timeOperations->getDayOfWeek($entry->date)]->begin,
-                                                  $userSchedule[$this->timeOperations->getDayOfWeek($entry->date)]->end,
-                                                  $userSchedule[$this->timeOperations->getDayOfWeek($entry->date)]->break);
+            $balanceSchedule = $this->timeOperations->getWorkTime($entry->schedule_begin, $entry->schedule_end, $entry->schedule_break);
 
             //Errechnet die Abweichung von der Standardarbeitszeit
             $balance = $balanceWork - $balanceSchedule;
@@ -80,7 +60,7 @@ class userBalance
             $entryTable[$i]["end"] = $entry->end;
             $entryTable[$i]["regularHours"] = $balanceSchedule;
             $entryTable[$i]["workingHours"] = $balanceWork;
-            $entryTable[$i]["break"] = $break;
+            $entryTable[$i]["break"] = $entry->break;
             $entryTable[$i]["balance"] = $balance;
             $entryTable[$i]["balanceTotal"] = $balanceTotal;
             $i++;

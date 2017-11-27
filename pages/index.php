@@ -9,20 +9,17 @@
 
     $time = $container->make("timeOperations");
     $entryRepository = $container->make("entryRepository");
-    $workingHours = $container->make("userDataRepository");
+    $workingHours = $container->make("userScheduleRepository");
     $entrySnapshot = $container->make("entrySnapshotRepository");
     $entryRevision = $container->make("entryRevisionRepository");
     $userBalance = $container->make("userBalance");
-
+    $userScheduleVersions = $container->make("userScheduleVersions");
     ?>
 
-    <!--Arbeitszeiten Versionieren Neue Spalte: Version, von, bis. (Vermutlich reicht "bis"
-    // Versionswechsel nur auf volle Wochen mögliche machen.
-    // Spalte Version ggf. auch in den Entrys ergänzen -> Mal schauen, ob man das auch über das Datum greifen kann.
-    -->
+    // TODO: Beim Speichern der Einträge die aktuelle Version speichern.
 
     <pre><?php  $user = 'yf7b97s';
-                var_dump($userBalance->calculateBalance($user));
+                var_dump($userScheduleVersions->getCurrentVersion($user));
 
             ?>
     </pre>

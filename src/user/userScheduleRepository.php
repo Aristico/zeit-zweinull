@@ -10,7 +10,7 @@ namespace App\user;
 
 use PDO;
 
-class userDataRepository
+class userScheduleRepository
 {
     private $pdo;
 
@@ -21,9 +21,9 @@ class userDataRepository
 
     public function getWorkingHours ($day, $user) {
 
-        $stmt = $this->pdo->prepare("SELECT * FROM working_hours WHERE day = :day and user = :user");
+        $stmt = $this->pdo->prepare("SELECT * FROM user_schedule WHERE day = :day and user = :user");
         $stmt->execute([':day' => $day, ":user" => $user]);
-        $stmt->setFetchMode(PDO::FETCH_CLASS, "App\\entry\\userDataModel");
+        $stmt->setFetchMode(PDO::FETCH_CLASS, "App\\entry\\userScheduleModel");
         $res = $stmt->fetch();
 
         return $res;
@@ -31,9 +31,9 @@ class userDataRepository
 
       public function getWorkingSchedule ($user) {
 
-        $stmt = $this->pdo->prepare("SELECT * FROM working_hours WHERE user = :user ORDER BY day ASC");
+        $stmt = $this->pdo->prepare("SELECT * FROM user_schedule WHERE user = :user ORDER BY day ASC");
         $stmt->execute([':user' => $user]);
-        $stmt->setFetchMode(PDO::FETCH_CLASS, "App\\user\\userDataModel");
+        $stmt->setFetchMode(PDO::FETCH_CLASS, "App\\user\\userScheduleModel");
         $res = $stmt->fetchAll();
 
         $userValues = [];

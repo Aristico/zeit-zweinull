@@ -9,12 +9,12 @@
 namespace App\user;
 
 
-class userDataModel
+class userScheduleModel
 {
     public $user;
     public $day;
     public $begin;
     public $end;
     public $break;
-
+    public $version;
 }
