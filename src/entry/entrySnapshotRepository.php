@@ -44,8 +44,34 @@ class entrySnapshotRepository
         return $res;
     }
 
-    public function setSnapshots ($user, $date) {
-        // Snapshot hier speichern
+    public function snapshotExists ($user, $date) {
+
+        $stmt = $this->pdo->prepare("SELECT * FROM snapshots WHERE date = :date AND user = :user");
+        $stmt->execute([':user' => $user, ':date' => $date]);
+        $stmt->setFetchMode(PDO::FETCH_CLASS, "App\\entry\\entrySnapshotMedel");
+        $entry = $stmt->fetch();
+
+        if(empty($entry)) {
+            return false;
+        } else {return true;}
+    }
+
+    public function setSnapshot ($user, $date, $balance) {
+
+        if ($this->snapshotExists($user, $date)) {
+            $sql = "UPDATE snapshots SET balance = :balance WHERE user = :user AND date = :date";
+        } else {
+            $sql = "INSERT INTO snapshots (user, date, balance) VALUES (:user, :date, :balance)";
+        }
+
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->execute([":user" => $user, ":date" => $date, ":balance" => $balance]);
+
+         if ($stmt) {
+                return 1;
+            } else {
+                return 0;
+            }
     }
 
 }

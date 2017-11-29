@@ -26,8 +26,12 @@ class timeOperations
         $this->dateToday = date("Y-m-d");
     }
 
-    public function getDate () {
-        return $this->dateToday;
+    public function getDate ($date = 0) {
+        if ($date = 0) {
+            return $this->dateToday;
+        } else {
+            return date ("Y-m-d", $date);
+        }
     }
 
     public function getCurrentTime ()

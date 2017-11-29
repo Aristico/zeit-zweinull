@@ -30,13 +30,13 @@ class entryRepository
         } else {return true;}
     }
 
-    public function fetchDatabase($user, $dateafter = '', $datebefore = '') {
+    public function fetchDatabase($user, $dateafter = '', $dateto = '') {
 
         if ($dateafter == '') { $condition_date_after = '';}
                 else {$condition_date_after = " AND entrys.date > :dateafter";}
 
-        if ($datebefore != '' ) {$condition_date_before = " AND entrys.date < :datebefore";}
-                else {$condition_date_before = '';}
+        if ($dateto != '' ) {$condition_date_to = " AND entrys.date <= :dateto";}
+                else {$condition_date_to = '';}
 
         $sql = "select entrys.user,
                        entrys.date,
@@ -51,15 +51,15 @@ class entryRepository
                 FROM   entrys 
                 LEFT JOIN revision ON revision.user = entrys.user AND revision.date = entrys.date
                 LEFT JOIN user_schedule us ON us.user = entrys.user AND us.version = entrys.version AND weekday(entrys.date)+1 = us.day 
-                WHERE entrys.user = :user" . $condition_date_after . $condition_date_before;
+                WHERE entrys.user = :user" . $condition_date_after . $condition_date_to;
 
         $stmt = $this->pdo->prepare($sql);
         $stmt->bindParam("user", $user);
         if ($condition_date_after > '') {
             $stmt->bindParam("dateafter", $dateafter);
         }
-        if ($condition_date_before > '') {
-            $stmt->bindParam("datebefore", $datebefore);
+        if ($condition_date_to > '') {
+            $stmt->bindParam("dateto", $dateto);
         }
         $stmt->execute();
         $entrys = $stmt->fetchAll(PDO::FETCH_CLASS, "App\\entry\\entryModel");
