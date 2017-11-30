@@ -6,10 +6,9 @@
  * Time: 19:22
  */
 
-namespace App\user;
+namespace App\entry;
 
 use DateTime;
-use DateTimeZone;
 
 class userBalance
 {
@@ -38,12 +37,23 @@ class userBalance
 
         $entryTable = [];
         $balanceTotal = $lastSnapshot->balance;
+        $revision = null;
         $i = 0;
         // erzeugt ein Array mit dem Berechnungsergebnis der Arbeitszeit und dem Stundenkonto.
         // Es wird für jeden Kalendertag ein Entrag angelegt, egal ob ein Eintrag in der DB existiert oder nicht.
         foreach ($entrys as $entry) {
 
             while ($dateCounter->format("Y-m-d") != $entry->date) {
+                if ($dateCounter->format("Y-m-d") == $this->timeOperations->getUltimo($dateCounter->format("Y-m-d"))) {
+                    if ($this->entrySnapshotRepository->snapshotExists($user, $dateCounter->format("Y-m-d"))) {
+                        $snapshot = $this->entrySnapshotRepository->getSnapshot($user, $dateCounter->format("Y-m-d"));
+                        $revision = $snapshot->revision;
+                        $balanceTotal = $balanceTotal - $revision;
+
+                    }
+                    $this->entrySnapshotRepository->setSnapshot($user, $dateCounter->format("Y-m-d"), $balanceTotal);
+                }
+
                 // Erstellt einen Eintrag für ein Datum an dem kein Eintrag in der DB existiert.
                 $entryTable[$i]["date"] = $dateCounter->format("Y-m-d");
                 $entryTable[$i]["begin"] = null;
@@ -52,14 +62,12 @@ class userBalance
                 $entryTable[$i]["workingHours"] = null;
                 $entryTable[$i]["break"] = null;
                 $entryTable[$i]["balance"] = null;
+                $entryTable[$i]["revision"] = $revision;
                 $entryTable[$i]["balanceTotal"] = $balanceTotal;
-
-                if ($dateCounter->format("Y-m-d") == $this->timeOperations->getUltimo($dateCounter->format("Y-m-d"))) {
-                    $this->entrySnapshotRepository->setSnapshot($user, $dateCounter->format("Y-m-d"), $balanceTotal);
-                }
 
                 $dateCounter->modify("+1 day");
                 $i++;
+                $revision = null;
                 }
 
                 // Errechnet die Tatsächliche Arbeitszeit
@@ -74,6 +82,15 @@ class userBalance
                 // Errechnet das Stundenkonto
                 $balanceTotal += $balance;
 
+                if ($dateCounter->format("Y-m-d") == $this->timeOperations->getUltimo($dateCounter->format("Y-m-d"))) {
+                    if ($this->entrySnapshotRepository->snapshotExists($user, $dateCounter->format("Y-m-d"))) {
+                        $snapshot = $this->entrySnapshotRepository->getSnapshot($user, $dateCounter->format("Y-m-d"));
+                        $revision = $snapshot->revision;
+                        $balanceTotal = $balanceTotal - $revision;
+                    }
+                    $this->entrySnapshotRepository->setSnapshot($user, $dateCounter->format("Y-m-d"), $balanceTotal);
+                }
+
                 // Speichert die Daten zu dem Arbeitstag in einem Array
 
                 $entryTable[$i]["date"] = $entry->date;
@@ -83,13 +100,11 @@ class userBalance
                 $entryTable[$i]["workingHours"] = $balanceWork;
                 $entryTable[$i]["break"] = $entry->break;
                 $entryTable[$i]["balance"] = $balance;
+                $entryTable[$i]["revision"] = $revision;
                 $entryTable[$i]["balanceTotal"] = $balanceTotal;
+
                 $i++;
-
-                if ($dateCounter->format("Y-m-d") == $this->timeOperations->getUltimo($dateCounter->format("Y-m-d"))) {
-                    $this->entrySnapshotRepository->setSnapshot($user, $dateCounter->format("Y-m-d"), $balanceTotal);
-                }
-
+                $revision = null;
                 $dateCounter->modify("+1 day");
 
         }

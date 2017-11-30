@@ -9,13 +9,14 @@
 namespace App\core;
 
 
+use App\entry\entryController;
 use PDO;
 use App\entry\entryRevisionRepository;
 use App\entry\entrySnapshotRepository;
 use App\entry\entryRepository;
 use App\user\userScheduleRepository;
 use App\time\timeOperations;
-use App\user\userBalance;
+use App\entry\userBalance;
 use App\user\userScheduleVersions;
 
 
@@ -68,6 +69,9 @@ class container
                                             $this->make("entrySnapshotRepository"),
                                             $this->make("timeOperations"));
                 return $userBalance;
+            },
+            "entryController" => function () {
+                return new entryController($this->make("userBalance"));
             }
 
         ];
