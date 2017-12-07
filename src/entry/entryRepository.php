@@ -98,4 +98,49 @@ class entryRepository
             return 2;
         }
     }
+
+    public function changeBegin ($user, $date, $begin) {
+        if ($this->entryExists($user, $date)) {
+            $stmt = $this->pdo->prepare("UPDATE entrys SET begin = :begin WHERE user = :user AND date = :date");
+        } else {
+            $stmt = $this->pdo->prepare("INSERT INTO entrys (user, date, begin, version) 
+                                                   VALUES (:user, :date, :begin, :version)");
+            $stmt->bindParam("version",$this->userScheduleVersions->getCurrentVersion($user));
+        }
+
+        $stmt->bindParam("user", $user);
+        $stmt->bindParam("date", $date);
+        $stmt->bindParam("begin", $begin);
+
+        $result = $stmt->execute();
+
+        if ($result) {
+                return 1;
+            } else {
+                return 0;
+            }
+    }
+
+    public function changeEnd ($user, $date, $end)
+    {
+        if ($this->entryExists($user, $date)) {
+            $stmt = $this->pdo->prepare("UPDATE entrys SET end = :end WHERE user = :user AND date = :date");
+        } else {
+            $stmt = $this->pdo->prepare("INSERT INTO entrys (user, date, end, version) 
+                                                   VALUES (:user, :date, :end, :version)");
+            $stmt->bindParam("version", $this->userScheduleVersions->getCurrentVersion($user));
+        }
+
+        $stmt->bindParam("user", $user);
+        $stmt->bindParam("date", $date);
+        $stmt->bindParam("end", $end);
+
+        $result = $stmt->execute();
+
+        if ($result) {
+            return 1;
+        } else {
+            return 0;
+        }
+    }
 }

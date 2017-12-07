@@ -71,7 +71,8 @@ class container
                 return $userBalance;
             },
             "entryController" => function () {
-                return new entryController($this->make("userBalance"));
+                return new entryController($this->make("userBalance"),
+                                           $this->make("timeOperations"));
             }
 
         ];

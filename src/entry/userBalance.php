@@ -25,7 +25,7 @@ class userBalance
         $this->timeOperations = $timeOperations;
     }
 
-    public function calculateBalance ($user, $dateFrom, $dateTo) {
+    public function calculateBalance ($user, $dateFrom, $dateTo, $reverse = false) {
 
         // Ermittelt das Datum des letzten Snapshots
         $lastSnapshot = $this->entrySnapshotRepository->getLastSnapshot($user, $dateFrom);
@@ -64,6 +64,7 @@ class userBalance
                 $entryTable[$i]["balance"] = null;
                 $entryTable[$i]["revision"] = $revision;
                 $entryTable[$i]["balanceTotal"] = $balanceTotal;
+                $entryTable[$i]["user"] = $user;
 
                 $dateCounter->modify("+1 day");
                 $i++;
@@ -102,6 +103,8 @@ class userBalance
                 $entryTable[$i]["balance"] = $balance;
                 $entryTable[$i]["revision"] = $revision;
                 $entryTable[$i]["balanceTotal"] = $balanceTotal;
+                $entryTable[$i]["user"] = $user;
+
 
                 $i++;
                 $revision = null;
@@ -110,6 +113,10 @@ class userBalance
         }
         while (strtotime($dateFrom) > strtotime($entryTable[0]["date"])) {
             array_shift($entryTable);
+        }
+
+        if ($reverse == true) {
+            return array_reverse($entryTable);
         }
 
         return $entryTable;

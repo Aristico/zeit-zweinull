@@ -1,3 +1,32 @@
-h1 {
-    color: red;
+.entryList {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-start;
+}
+
+.entryList__entry {margin: 5px 0px 0px 0px;}
+.entryList__link {height: 100%; width: 100%;}
+.entryList__entry--periodInfo {flex-basis: 100%;}
+.entryList__entry--workDay {flex-basis: 48%; margin-right: 2%}
+.entryList__entry--weekend {flex-basis: 24%; }
+
+
+@media only screen and (min-width : 480px) {
+    .entryList__entry { margin: 5px 0px 0px 0px;}
+    .entryList__entry--periodInfo {flex-basis: 100%;}
+    .entryList__entry--workDay {flex-basis: 32%; margin-right: 1%;}
+    .entryList__entry--weekend {flex-basis: 16%;}
+}
+
+/* Medium Devices, Desktops */
+@media only screen and (min-width : 992px) {
+    .entryList {justify-content: flex-end;}
+    .entryList__entry { margin: 5px 0.57% 0px 0px;}
+    .entryList__entry--periodInfo {flex-basis: 100%;}
+    .entryList__entry--workDay {flex-basis: 16%;}
+    .entryList__entry--weekend {flex-basis: 8%;}
+}
+
+.schedule__cell {
+
 }

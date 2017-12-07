@@ -48,4 +48,34 @@ class entryRevisionRepository
 
         return $revisionValues;
     }
+
+    public function revisionExists ($user, $date) {
+
+        $stmt = $this->pdo->prepare("SELECT * FROM revision WHERE date = :date AND user = :user");
+        $stmt->execute([':user' => $user, ':date' => $date]);
+        $stmt->setFetchMode(PDO::FETCH_CLASS, "App\\entry\\entrySnapshotMedel");
+        $entry = $stmt->fetch();
+
+        if(empty($entry)) {
+            return false;
+        } else {return true;}
+    }
+
+    public function setBreak ($user, $date, $break) {
+
+        if ($this->revisionExists($user, $date)) {
+            $sql = "UPDATE revision SET break = :break WHERE user = :user AND date = :date";
+        } else {
+            $sql = "INSERT INTO revision (user, date, break) VALUES (:user, :date, :break)";
+        }
+
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->execute([":user" => $user, ":date" => $date, ":break" => $break]);
+
+         if ($stmt) {
+                return 1;
+            } else {
+                return 0;
+            }
+    }
 }
