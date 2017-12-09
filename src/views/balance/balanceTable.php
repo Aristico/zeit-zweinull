@@ -6,7 +6,7 @@
                     <th class="schedule__cell">Pause</th>
                     <th class="schedule__cell">Arbeitszeit (Regulär)</th>
                     <th class="schedule__cell">Abweichung</th>
-                    <th class="schedule__cell">Stundenkonto (Auszahlung)</th>
+                    <th class="schedule__cell">Stundenkonto</th>
                 </tr> <?php
             foreach ($results AS $result) {?>
                 <tr>
@@ -26,7 +26,7 @@
                     <td class="schedule__cell"></td>
                     <?php }
                     $revision = "";
-                    if ($result["revision"] != null) { $revision = " (" . $result["revision"] . ")";}
+                    if ($result["revision"] != null) { $revision = "<br> Ausgezahlt: " . $this->timeOperations->getBalanceOutput($result["revision"]);}
                     ?>
                     <td class="schedule__cell"><?php echo $this->timeOperations->getBalanceOutput($result["balanceTotal"]) . $revision?></td>
                 </tr><?php
